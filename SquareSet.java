@@ -1,3 +1,6 @@
+import java.util.Set;
+import java.util.Iterator;
+
 /**
  * Represents a Set of squares on a chess board.
  *
@@ -13,7 +16,6 @@ public class SquareSet implements Set<Square> {
 
 
     /* Creates a SquareSet with an Object array as a backing store.
-     * nh
      */
     public SquareSet() {
         bArray = new Object[10];
@@ -22,8 +24,16 @@ public class SquareSet implements Set<Square> {
 
     @Override
 
-    public boolean add (Square e) {
-        for (Square x:bArray) {
+    /**
+     * Adds the square element to this square set if it is not already present
+     *
+     * @param e square to be added to this set
+     * @return true if the set did not already contain the specified element
+     * @throws InvalidSquareException if invalid square is passed into the
+     * the method.
+     */
+    public boolean add (Square e) throws InvalidSquareException {
+        for (Square x: bArray) {
             if (e == null ? x == null : e.equals(x)) {
                 return false;
             }
@@ -57,9 +67,12 @@ public class SquareSet implements Set<Square> {
         }
         return true;
     }
-
+    /**
+     * @return true if this set contains the specified elemnent
+     * @param o element whose presence in this set is to be tested
+     */
     public boolean contains(Object o) {
-        for (Square x:bArray){
+        for (Square x: bArray){
                    if (o != null && o.equals(x)){
                        return true;
                     }
@@ -67,37 +80,89 @@ public class SquareSet implements Set<Square> {
         return false;
     }
 
+    /**
+     * @param c collection to be checked for containment in this set
+     * @return true if this set contains all of the elements of the
+     * specified collection
+     */
     public boolean containsAll(Collection<?> c) {
+        for (Square x: bArray) {
+            if (!(this.contains(x))) {
+                return false;
+            }
+        }
         return true;
     }
 
+    /**
+     * @return the hash code value for this set, defined
+     * by the sum of the hash codes of the elements in the set
+     */
     public int hashCode() {
         int sum = 0;
         for (Square x:bArray) {
             sum += x.hashCode();
         }
-        return 6;
+        return sum;
     }
 
+    /**
+     * @return true if this set contains no elements
+     */
     public boolean isEmpty() {
-        return true;
+        if (numOfElements == 0) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
+    /**
+     * @return iterator over the elements in this set
+     * @see Iterator
+     */
     public Iterator<Square> iterator {
-        return new SquareIterator;
+        return new SquareIterator();
     }
 
-
+    /**
+     * @return the number of elements in this set
+     */
     public int size() {
         return numOfElements;
     }
 
+    /**
+     * @return true if the specified object is also a set, the two sets have the
+     * same size, and every member of the specified set is contained in this
+     * set (or equivalently, every member of this set is contained
+     * in the specified set)
+     */
     public boolean equals(Object o) {
         if (o == null) { return false; }
         if (o == this) { return true; }
-        if (!(o instanceof SquareSet)) { return false; }
-        Set<Square> that = (Set<Square>) o;
-        return false;
+        if ((Set)o.size() != this.size()) { return false; }
+        if (!(o instanceof Set)) { return false;}
+        return this.containsAll((Set) o);
+        }
+    }
+
+    /**
+     * @return array containing all the elements in this set
+     */
+    public Object[] toArray() {
+        Object[] copy = new Object[numOfElements];
+        for (int x = 0; x < numOfElements; x++) {
+            copy[x] = bArray[x];
+        }
+        return copy;
+    }
+    /**
+     *
+     *
+     */
+    public <T> T[] toArray(T[] a) {
+
     }
 
    private class SquareIterator implements Iterator<Square> {
