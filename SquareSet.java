@@ -2,7 +2,7 @@ import java.util.Set;
 import java.util.Iterator;
 import java.util.Collection;
 import java.util.NoSuchElementException;
-import java.util.Arrays;
+import java.lang.reflect.Array;
 
 
 /**
@@ -176,14 +176,13 @@ public class SquareSet<Square> implements Set<Square> {
      * @param a the array into wich the elements of this set are to be stored
      * @param <Square> runtime type of the array to contain the collection
      */
-    public <Square> Square[] toArray(Square[] a) {
+    public <T> T[] toArray(T[] a) {
         if (a.length < numOfElements) {
-            Square[] b = (Square[])this.toArray();
-            a = b;
+            a = Array.newInstance(a.getClass().getComponentType(), numOfElements);
             return a;
         } else {
-            for (int x = 0; x < numOfElements && x < a.length; x++) {
-                a[x] = ((Square) bArray[x]);
+            for (int x = 0; x < numOfElements; x++) {
+                a[x] = ((T) bArray[x]);
             }
             if(a.length > numOfElements) {
                 a[numOfElements] = null;
@@ -218,19 +217,13 @@ public class SquareSet<Square> implements Set<Square> {
         boolean found = false;
 
         for (int i = 0; i < bArray.length; i++) {
-            if (o == null ? bArray[i] == null : o.equals(bArray[i])) {
+            if (o != null && o.equals(bArray[i])) {
                 found = true;
                 numOfElements--;
-                Object[]  copy = new Object[numOfElements];
+                Object[] copy = new Object[numOfElements];
                 for (int x = 0; x < numOfElements; x++) {
-                    if (bArray[i] == null && o == null) {
-                        if (bArray[x] != null) {
-                            copy[x] = bArray[x];
-                        }
-                    } else {
-                        if (!(bArray[x].equals(bArray[i]))) {
-                            copy[x] = bArray[x];
-                        }
+                    if (!(bArray[x].equals(bArray[i]))) {
+                        copy[x] = bArray[x];
                     }
                 }
                 bArray = (Square[]) copy;
@@ -239,6 +232,7 @@ public class SquareSet<Square> implements Set<Square> {
         }
         return found;
     }
+
 
     public String toString() {
       String result = "";
