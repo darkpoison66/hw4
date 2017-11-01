@@ -23,8 +23,35 @@ public class Tester {
        // System.out.println(squares.size());
         //System.out.println(squares2.size());
         //Object[] array = squares.toArray();
-        Square[] array  = new Square[2];
-        array = (Square[]) squares.toArray(array);
-        System.out.println(Arrays.toString(array));
+        boolean passedIteratorTests = false;
+        SquareSet set = new SquareSet();
+        ArrayList<Square> alreadyRemoved = new ArrayList<Square>();
+        for (Square s : set) {
+                    if ((!s.equals(new Square("e2"))
+                            && !s.equals(new Square("a6"))
+                            && !s.equals(new Square("f7")))
+                            || alreadyRemoved.contains(s)) {
+                        System.out.println(
+                        "Iterator didn't return an element in the set.");
+                        passedIteratorTests = false;
+                    }
+                    if ((!s.equals(new Square("e2"))
+                            && !s.equals(new Square("a6"))
+                            && !s.equals(new Square("f7")))
+                            || alreadyRemoved.contains(s)) {
+                        System.out.println(
+                        "Iterator didn't return an element in the set.");
+                        passedIteratorTests = false;
+                    }
+                    if ((!s.equals(new Square("e2"))
+                            && !s.equals(new Square("a6"))
+                            && !s.equals(new Square("f7")))
+                            || alreadyRemoved.contains(s)) {
+                        System.out.println(
+                        "Iterator didn't return an element in the set.");
+                        passedIteratorTests = false;
+                    }
+                    alreadyRemoved.add(s);
+                }
     }
 }

@@ -2,7 +2,9 @@ import java.util.Set;
 import java.util.Iterator;
 import java.util.Collection;
 import java.util.NoSuchElementException;
-import java.lang.reflect.Array;
+
+
+
 
 
 /**
@@ -10,22 +12,33 @@ import java.lang.reflect.Array;
  *
  * @version 1.0
  * @author mabdi3
- * @see Square
+ * @param <Square> a square on a chess board
  */
 
-public class SquareSet<Square> implements Set<Square> {
+public class SquareSet<Square> implements Set<Square>, Iterable<Square> {
 
-    private Square[] bArray;
+    private Square[] array;
     private int numOfElements;
 
 
     /**
-     * Creates a SquareSet with an Object array as a backing store.
+     * Creates a default SquareSet with an Object array as a backing store.
      */
     public SquareSet() {
-        bArray = ((Square[]) new Object[10]);
+        array = (Square[]) new Object[10];
         numOfElements = 0;
     }
+
+    /**
+     * Creates a new SquareSet with the same elements as its argument c
+     * @param c Collection for which a new SquareSet will created
+     */
+    public SquareSet(Collection<Square> c) {
+        array = (Square[]) new Object[c.size() * 2];
+        numOfElements = 0;
+        this.addAll(c);
+    }
+
 
     @Override
 
@@ -37,29 +50,37 @@ public class SquareSet<Square> implements Set<Square> {
      * @throws InvalidSquareException if invalid square is passed into the
      * the method.
      */
-    public boolean add(Square e) {
-        for (Object x: bArray) {
-            if (e == null ? x == null : e.equals(x)) {
+    public boolean add(Square e)
+    throws ClassCastException, NullPointerException, IllegalArgumentException {
+        for (Square x: array) {
+            if (e.equals(x)) {
                 return false;
+            } else if (e == null) {
+                throw new NullPointerException();
             }
         }
-        if (numOfElements == bArray.length) {
-            Object[] copy = new Object[bArray.length * 3];
-            for (int x = 0; x < bArray.length; x++) {
-                copy[x] = bArray[x];
+        char file = e.toString().charAt(0);
+        char rank = e.toString().charAt(1);
+
+        if (!validFile(file) || !validRank(rank)) {
+            throw new InvalidSquareException(e.toString());
+        }
+
+        if (numOfElements == array.length) {
+            Square[] copy = (Square[]) new Object[array.length + 1];
+            for (int x = 0; x < array.length; x++) {
+                copy[x] = array[x];
             }
             copy[numOfElements] = e;
             numOfElements++;
-            bArray = (Square[]) copy;
+            array = (Square[]) copy;
             return true;
         } else {
-            bArray[numOfElements] = e;
+            array[numOfElements] = e;
             numOfElements++;
             return true;
         }
     }
-
-
 
     /**
      * Adds all of the elements in the specified collection
@@ -69,17 +90,68 @@ public class SquareSet<Square> implements Set<Square> {
      * @return true if this set changed as a result of this call
      */
     public boolean addAll(Collection<? extends Square> c) {
-        for (Square x: c) {
-            this.add(x);
+        for (Square x : c) {
+            if (x == null) {
+                throw new NullPointerException();
+            }
+            if (x.toString().length() != 2) {
+                throw new InvalidSquareException(x.toString());
+            }
+            char file = x.toString().charAt(0);
+            char rank = x.toString().charAt(1);
+            if (!validFile(file) || !validRank(rank)) {
+                throw new InvalidSquareException(x.toString());
+            }
         }
-        return true;
+        boolean found = false;
+        for (Square y : c) {
+            if (this.add(y)) {
+                found = true;
+            }
+        }
+        return found;
+    }
+
+    /**
+     * Checks to see if file is between 'a' and 'h'
+     * @param file the file in which the square presides
+     * @return true if file is between 'a' and 'h', and false
+     * otherwise
+     */
+    public static boolean validFile(char file) {
+        boolean valid = false;
+        for (int x = 97; x <= 104; x++) {
+            if (file == x) {
+                valid = true;
+            }
+        }
+        return valid;
+    }
+
+    /**
+     * Checks to see if rank is between '1' and '8'
+     * @param rank the rank in which the square presides
+     * @return true if rank is between '1' and '8' and false
+     * otherwise
+     */
+    public static boolean validRank(char rank) {
+        boolean valid = false;
+        for (int x = 49; x <= 56; x++) {
+            if (rank == x) {
+                valid = true;
+            }
+        }
+        return valid;
     }
     /**
      * @return true if this set contains the specified elemnent
      * @param o element whose presence in this set is to be tested
      */
     public boolean contains(Object o) {
-        for (Square x: bArray) {
+        if (o == null) {
+            return false;
+        }
+        for (Square x: array) {
             if (o != null && o.equals(x)) {
                 return true;
             }
@@ -93,7 +165,7 @@ public class SquareSet<Square> implements Set<Square> {
      * specified collection
      */
     public boolean containsAll(Collection<?> c) {
-        for (Square x: (Set<Square>) c) {
+        for (Square x: (Collection<Square>) c) {
             if (!(this.contains(x))) {
                 return false;
             }
@@ -107,8 +179,10 @@ public class SquareSet<Square> implements Set<Square> {
      */
     public int hashCode() {
         int sum = 0;
-        for (Square x:bArray) {
-            sum += x.hashCode();
+        for (Square x:array) {
+            if (x != null) {
+                sum += x.hashCode();
+            }
         }
         return sum;
     }
@@ -120,13 +194,6 @@ public class SquareSet<Square> implements Set<Square> {
         return numOfElements == 0;
     }
 
-    /**
-     * @return iterator over the elements in this set
-     * @see Iterator
-     */
-    public Iterator<Square> iterator() {
-        return new SquareIterator();
-    }
 
     /**
      * @return the number of elements in this set
@@ -149,10 +216,10 @@ public class SquareSet<Square> implements Set<Square> {
         if (o == this) {
             return true;
         }
-        if ((((Set) o).size()) != this.size()) {
+        if (!(o instanceof Set)) {
             return false;
         }
-        if (!(o instanceof Set)) {
+        if ((((Set) o).size()) != this.size()) {
             return false;
         }
         return this.containsAll((Set) o);
@@ -164,7 +231,7 @@ public class SquareSet<Square> implements Set<Square> {
     public Object[] toArray() {
         Object[] copy = new Object[numOfElements];
         for (int x = 0; x < numOfElements; x++) {
-            copy[x] = bArray[x];
+            copy[x] = array[x];
         }
         return ((Square[]) copy);
     }
@@ -174,17 +241,21 @@ public class SquareSet<Square> implements Set<Square> {
      * @return array containing all of the elements in this set;
      * the runtime type of the returned array is that of the specified array
      * @param a the array into wich the elements of this set are to be stored
-     * @param <Square> runtime type of the array to contain the collection
+     * @param <T> runtime type of the array to contain the collection
      */
-    public <T> T[] toArray(T[] a) {
+    public <T> T[] toArray(T[] a) throws ArrayStoreException,
+     NullPointerException {
         if (a.length < numOfElements) {
-            a = Array.newInstance(a.getClass().getComponentType(), numOfElements);
-            return a;
+            Object[] b = new Object[numOfElements];
+            for (int x = 0; x < numOfElements; x++) {
+                b[x] = array[x];
+            }
+            return ((T[]) b);
         } else {
             for (int x = 0; x < numOfElements; x++) {
-                a[x] = ((T) bArray[x]);
+                a[x] = ((T) array[x]);
             }
-            if(a.length > numOfElements) {
+            if (a.length > numOfElements) {
                 a[numOfElements] = null;
             }
             return a;
@@ -202,7 +273,7 @@ public class SquareSet<Square> implements Set<Square> {
         if (o == null) {
             return false;
         }
-       /* for (Object x:bArray) {
+       /* for (Object x:array) {
             if ((o == null ? x == null : o.equals(x)) {
                 Object store = x;
                 numOfElements--;
@@ -214,56 +285,75 @@ public class SquareSet<Square> implements Set<Square> {
 
             }
        }*/
+       // System.out.println(Arrays.toString(array));
         boolean found = false;
-
-        for (int i = 0; i < bArray.length; i++) {
-            if (o != null && o.equals(bArray[i])) {
+        for (int x = 0; x < numOfElements; x++) {
+            if (array[x] != null && array[x].equals(o)) {
                 found = true;
-                numOfElements--;
-                Object[] copy = new Object[numOfElements];
-                for (int x = 0; x < numOfElements; x++) {
-                    if (!(bArray[x].equals(bArray[i]))) {
-                        copy[x] = bArray[x];
-                    }
-                }
-                bArray = (Square[]) copy;
-                return found;
             }
         }
-        return found;
+        if (found && numOfElements >= 1) {
+            Object[] copy = new Object[numOfElements];
+            for (int i = 0; i < numOfElements; i++) {
+                if (!(array[i].equals(o)) && array[i] != null) {
+                    copy[i] = array[i];
+                }
+            }
+           // System.out.println(Arrays.toString(copy));
+            Object[] copy2 = new Object[numOfElements - 1];
+            for (int j = 0, y = 0; j < numOfElements; j++) {
+                if (copy[j] != null) {
+                   // System.out.print(copy[j] + " ");
+                    copy2[y++] = copy[j];
+                    //System.out.print("   " + copy2[j] + "  ");
+                }
+            }
+            numOfElements--;
+            //System.out.println();
+            //System.out.println(Arrays.toString(copy2));
+            array = (Square[]) copy2;
+            //System.out.println(Arrays.toString(array));
+            return true;
+        } else {
+            return false;
+        }
     }
 
-
+    /**
+     * @return string representation of the set
+     */
     public String toString() {
-      String result = "";
+        String result = "";
 
-      for (int index=0; index < numOfElements; index++)
-         result = result + bArray[index].toString() + "\n";
+        for (int index = 0; index < array.length; index++) {
+            if (array[index] != null) {
+                result = result + array[index].toString() + "\n";
+            }
+        }
 
-      return result;
+        return result;
     }
 
     /**
-     * @throws UnsupportedOperationExcetion
+     * @return iterator over the elements in this set
+     * @see SquareIterator
      */
+    public Iterator<Square> iterator() {
+        return new SquareIterator();
+    }
+
+
+    @Override
     public void clear() {
-        throw new UnsupportedOperationException();
+
     }
-    /**
-     * @throws UnsupportedOperationExcetion
-     * @param c collection to be removed
-     * @return an UnsupportedOperationException
-     */
+    @Override
     public boolean removeAll(Collection<?> c) {
-        throw new UnsupportedOperationException();
+        return false;
     }
-    /**
-     * @throws UnsupportedOperationExcetion
-     * @param c collection to be removed
-     * @return an UnsupportedOperationException
-     */
+    @Override
     public boolean retainAll(Collection<?> c) {
-        throw new UnsupportedOperationException();
+        return false;
     }
     /**
      * Represents an iterator over a Square collection.
@@ -274,6 +364,21 @@ public class SquareSet<Square> implements Set<Square> {
      */
     private class SquareIterator implements Iterator<Square> {
         private int cursor = 0;
+
+        /**
+         * Creates a SquareIterator
+         */
+        public SquareIterator() {
+            cursor = 0;
+        }
+        /**
+         * @return iterator over the elements in this set
+         * @see SquareIterator
+         */
+        public Iterator<Square> iterator() {
+            return this;
+        }
+
        /**
         * @return true if the iteration has more elements
         */
@@ -288,9 +393,10 @@ public class SquareSet<Square> implements Set<Square> {
             if (!hasNext()) {
                 throw new NoSuchElementException();
             }
-            Square next = bArray[cursor];
+            Square next = array[cursor];
             cursor++;
             return next;
         }
+
     }
 }

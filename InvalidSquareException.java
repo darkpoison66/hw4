@@ -17,7 +17,7 @@
  * @version 1.0
  * @author mabdi3
  */
-public class InvalidSquareException extends Exception {
+public class InvalidSquareException extends RuntimeException {
     private String message;
 
     /**
